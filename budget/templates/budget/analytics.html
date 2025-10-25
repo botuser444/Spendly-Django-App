@@ -1,0 +1,284 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Analytics - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 1rem; color: #333;">Financial Analytics 📊</h1>
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Comprehensive insights into your financial patterns and trends</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row">
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💰</div>
+            <h3 style="margin-bottom: 0.5rem;">Total Income</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_income|floatformat:2|default:"5,200.00" }}</p>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
+            <h3 style="margin-bottom: 0.5rem;">Total Expenses</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_expenses|floatformat:2|default:"3,450.00" }}</p>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
+            <h3 style="margin-bottom: 0.5rem;">Total Investments</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_investments|floatformat:2|default:"1,200.00" }}</p>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <h3 style="margin-bottom: 0.5rem;">Savings Rate</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ savings_rate|floatformat:1|default:"10.6" }}%</p>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Spending Trend -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Monthly Spending Trend (Last 12 Months)</div>
+            <div class="chart-container">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Expense Breakdown by Category</div>
+            <div class="chart-container">
+                <canvas id="expenseBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Investment Portfolio Breakdown</div>
+            <div class="chart-container">
+                <canvas id="investmentBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Income vs Expenses vs Savings -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Income vs Expenses vs Savings Comparison</div>
+            <div class="chart-container">
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Data -->
+<div class="row">
+    <div class="col-12">
+        <div class="card text-center" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white;">
+            <h3 style="margin-bottom: 1rem;">Export Your Data</h3>
+            <p style="margin-bottom: 1.5rem; opacity: 0.9;">Download your financial data for external analysis or backup purposes.</p>
+            <button onclick="exportData()" class="btn" style="background-color: white; color: #9C27B0; padding: 1rem 2rem; font-size: 1.1rem; font-weight: bold;">
+                Export Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Analytics charts: render only when data exists; otherwise provide helpful guidance
+    const monthlyTrendEl = document.getElementById('monthlyTrendChart');
+    const expenseBreakdownEl = document.getElementById('expenseBreakdownChart');
+    const investmentBreakdownEl = document.getElementById('investmentBreakdownChart');
+    const incomeExpenseEl = document.getElementById('incomeExpenseChart');
+
+    let monthlyData = {{ monthly_data|default:'[]'|safe }};
+    let expenseBreakdownData = {{ expense_breakdown|default:'[]'|safe }};
+    let investmentBreakdownData = {{ investment_breakdown|default:'[]'|safe }};
+
+    // Demo banner helper
+    function insertDemoBanner(cardSelector) {
+        try {
+            const card = cardSelector.closest('.card');
+            if (!card) return;
+            const existing = card.querySelector('.demo-banner');
+            if (existing) return;
+            const el = document.createElement('div');
+            el.className = 'demo-banner';
+            el.style.padding = '0.5rem 1rem';
+            el.style.background = '#fff8e1';
+            el.style.border = '1px solid #ffecb3';
+            el.style.color = '#8a6d3b';
+            el.style.borderRadius = '6px';
+            el.style.margin = '0.5rem 0 1rem 0';
+            el.textContent = 'Showing demo data — add real transactions to replace these charts.';
+            card.insertBefore(el, card.querySelector('.chart-container'));
+        } catch (e) {}
+    }
+
+    function showEmptyMessage(el, message) {
+        const container = el.parentNode;
+    container.innerHTML = '<div style="padding:2rem; text-align:center; color:#666;">' + message + '</div>';
+    }
+
+    // Monthly trend (demo fallback)
+    if (!monthlyData || monthlyData.length === 0) {
+        const now = new Date();
+        monthlyData = [];
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toISOString().slice(0,7);
+            monthlyData.push({ month: label, expenses: Math.round(200 + Math.random()*1200), investments: Math.round(50 + Math.random()*600) });
+        }
+        insertDemoBanner(document.getElementById('monthlyTrendChart'));
+    }
+    if (monthlyData && monthlyData.length > 0) {
+        const monthlyTrendCtx = monthlyTrendEl.getContext('2d');
+        new Chart(monthlyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(item => item.month),
+                datasets: [{ label: 'Expenses', data: monthlyData.map(item => item.expenses), borderColor: '#f44336', backgroundColor: 'rgba(244, 67, 54, 0.1)', tension: 0.4, fill: true },
+                           { label: 'Investments', data: monthlyData.map(item => item.investments), borderColor: '#2196F3', backgroundColor: 'rgba(33, 150, 243, 0.1)', tension: 0.4, fill: true }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    } else {
+        showEmptyMessage(monthlyTrendEl, 'No monthly data yet. Add expenses or investments across months to populate this chart.');
+    }
+
+    // Expense breakdown (demo fallback)
+    if (!expenseBreakdownData || expenseBreakdownData.length === 0) {
+        expenseBreakdownData = [
+            { category: 'Food', total: 850.25 },
+            { category: 'Transport', total: 220.40 },
+            { category: 'Shopping', total: 420.00 },
+            { category: 'Bills', total: 390.75 },
+            { category: 'Entertainment', total: 150.00 }
+        ];
+        insertDemoBanner(document.getElementById('expenseBreakdownChart'));
+    }
+    if (expenseBreakdownData && expenseBreakdownData.length > 0) {
+        const expenseBreakdownCtx = expenseBreakdownEl.getContext('2d');
+        new Chart(expenseBreakdownCtx, {
+            type: 'pie',
+            data: {
+                labels: expenseBreakdownData.map(item => item.category),
+                datasets: [{ data: expenseBreakdownData.map(item => parseFloat(item.total)), backgroundColor: ['#4CAF50', '#2196F3', '#ff9800', '#f44336', '#9C27B0', '#00BCD4', '#795548', '#607D8B'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    } else {
+        showEmptyMessage(expenseBreakdownEl, 'No expense breakdown available for the current month. Try adding expenses to see category distribution.');
+    }
+
+    // Investment breakdown (demo fallback)
+    if (!investmentBreakdownData || investmentBreakdownData.length === 0) {
+        investmentBreakdownData = [
+            { investment_type: 'Stocks', total: 1200 },
+            { investment_type: 'Mutual Funds', total: 800 },
+            { investment_type: 'Real Estate', total: 400 },
+            { investment_type: 'Savings', total: 300 }
+        ];
+        insertDemoBanner(document.getElementById('investmentBreakdownChart'));
+    }
+    if (investmentBreakdownData && investmentBreakdownData.length > 0) {
+        const investmentBreakdownCtx = investmentBreakdownEl.getContext('2d');
+        new Chart(investmentBreakdownCtx, {
+            type: 'pie',
+            data: {
+                labels: investmentBreakdownData.map(item => item.investment_type),
+                datasets: [{ data: investmentBreakdownData.map(item => parseFloat(item.total)), backgroundColor: ['#4CAF50', '#2196F3', '#ff9800', '#f44336', '#9C27B0', '#00BCD4', '#795548', '#607D8B'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    } else {
+        showEmptyMessage(investmentBreakdownEl, 'No investments recorded for the current month. Add investments to build your portfolio breakdown.');
+    }
+
+    // Income vs Expenses vs Savings
+    let totalIncome = parseFloat({{ total_income|default:'0' }});
+    let totalExpenses = parseFloat({{ total_expenses|default:'0' }});
+    let totalInvestments = parseFloat({{ total_investments|default:'0' }});
+
+    // Income/Expenses/Investments demo fallback when totals are zero
+    if ((totalIncome + totalExpenses + totalInvestments) === 0) {
+        // derive from monthlyData latest month
+        const latest = monthlyData[monthlyData.length - 1] || { expenses: 0, investments: 0 };
+        totalExpenses = latest.expenses || 600;
+        totalInvestments = latest.investments || 250;
+        totalIncome = Math.round(totalExpenses + totalInvestments + 1200);
+        insertDemoBanner(document.getElementById('incomeExpenseChart'));
+    }
+
+    if ((totalIncome + totalExpenses + totalInvestments) > 0) {
+        const incomeExpenseCtx = incomeExpenseEl.getContext('2d');
+        new Chart(incomeExpenseCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Current Month'],
+                datasets: [{ label: 'Income', data: [totalIncome], backgroundColor: '#4CAF50' }, { label: 'Expenses', data: [totalExpenses], backgroundColor: '#f44336' }, { label: 'Investments', data: [totalInvestments], backgroundColor: '#2196F3' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    } else {
+        showEmptyMessage(incomeExpenseEl, 'No income/expenses/investments recorded for the current month yet. Update your profile (monthly salary) and add transactions to see this comparison.');
+    }
+
+    function exportData() {
+        // Create a simple CSV export
+        const data = {
+            income: {{ total_income|default:'0' }},
+            expenses: {{ total_expenses|default:'0' }},
+            investments: {{ total_investments|default:'0' }},
+            savings_rate: {{ savings_rate|default:'0' }}
+        };
+        
+        const csvContent = "Metric,Value\n" +
+                          "Income," + data.income + "\n" +
+                          "Expenses," + data.expenses + "\n" +
+                          "Investments," + data.investments + "\n" +
+                          "Savings Rate," + data.savings_rate + "%";
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'spendly_analytics.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 1rem 0;
+    }
+
+    @media (max-width: 768px) {
+        .col-3, .col-6 {
+            flex: 0 0 100%;
+        }
+        
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}

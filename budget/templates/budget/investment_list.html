@@ -1,0 +1,179 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Investments - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 2rem;">
+            <h1 style="color: #333;">Investments</h1>
+            <a href="{% url 'add_investment' %}" class="btn btn-primary">Add New Investment</a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Filter Investments</div>
+            <form method="get">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">Investment Type</label>
+                            {{ filter_form.investment_type }}
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            {{ filter_form.start_date }}
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            {{ filter_form.end_date }}
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">Search</label>
+                            {{ filter_form.search }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button type="submit" class="btn btn-secondary">Apply Filters</button>
+                        <a href="{% url 'investment_list' %}" class="btn btn-dark">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Card -->
+<div class="row">
+    <div class="col-12">
+        <div class="card text-center" style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white;">
+            <h2 style="margin-bottom: 0.5rem;">Total Investments</h2>
+            <p style="font-size: 2rem; font-weight: bold; margin: 0;">{{ currency_symbol }}{{ total_investments|floatformat:2|default:"1,200.00" }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Investments Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Investment List</div>
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for investment in page_obj %}
+                            <tr>
+                                <td>{{ investment.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; background-color: #e8f5e8; color: #2e7d32; font-size: 0.875rem;">
+                                        {{ investment.investment_type }}
+                                    </span>
+                                </td>
+                                <td>{{ investment.description|truncatechars:50 }}</td>
+                                <td style="font-weight: bold; color: #2196F3;">{{ currency_symbol }}{{ investment.amount|floatformat:2 }}</td>
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <a href="{% url 'edit_investment' investment.id %}" class="btn" style="background-color: #ff9800; color: white; padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</a>
+                                        <a href="{% url 'delete_investment' investment.id %}" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="text-center" style="margin-top: 2rem;">
+                    <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="btn btn-secondary" style="padding: 0.5rem 1rem;">First</a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Previous</a>
+                        {% endif %}
+                        
+                        <span style="padding: 0.5rem 1rem; background-color: #f5f5f5; border-radius: 4px;">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Next</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Last</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 3rem; color: #666;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+                    <h3 style="margin-bottom: 1rem;">No investments found</h3>
+                    <p style="margin-bottom: 2rem;">Start tracking your investments by adding your first investment.</p>
+                    <a href="{% url 'add_investment' %}" class="btn btn-primary">Add Your First Investment</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+        .col-3, .col-6 {
+            flex: 0 0 100%;
+        }
+        
+        .d-flex {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .table {
+            font-size: 0.875rem;
+        }
+        
+        .table td, .table th {
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}

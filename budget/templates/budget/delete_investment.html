@@ -1,0 +1,58 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Delete Investment - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 2rem; color: #333;">Delete Investment</h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-6">
+        <div class="card" style="border: 2px solid #f44336;">
+            <div class="card-header" style="background-color: #f44336; color: white;">
+                ⚠️ Confirm Deletion
+            </div>
+            
+            <div style="padding: 1.5rem;">
+                <h3 style="margin-bottom: 1rem; color: #333;">Are you sure you want to delete this investment?</h3>
+                
+                <div style="background-color: #f9f9f9; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
+                    <p style="margin-bottom: 0.5rem;"><strong>Type:</strong> {{ investment.investment_type }}</p>
+                    <p style="margin-bottom: 0.5rem;"><strong>Amount:</strong> {{ currency_symbol }}{{ investment.amount|floatformat:2 }}</p>
+                    <p style="margin-bottom: 0.5rem;"><strong>Description:</strong> {{ investment.description }}</p>
+                    <p style="margin-bottom: 0;"><strong>Date:</strong> {{ investment.date|date:"M d, Y" }}</p>
+                </div>
+                
+                <p style="color: #f44336; font-weight: bold; margin-bottom: 1.5rem;">
+                    This action cannot be undone.
+                </p>
+                
+                <form method="post" style="display: flex; gap: 1rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="flex: 1;">
+                        Yes, Delete Investment
+                    </button>
+                    <a href="{% url 'investment_list' %}" class="btn btn-secondary" style="flex: 1;">
+                        Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .col-6 {
+            flex: 0 0 100%;
+        }
+        
+        form {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

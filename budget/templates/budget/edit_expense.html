@@ -1,0 +1,96 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Edit Expense - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 2rem; color: #333;">Edit Expense</h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Edit Expense Details</div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.category.id_for_label }}">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div style="color: #f44336; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.category.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.amount.id_for_label }}">Amount</label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div style="color: #f44336; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.amount.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div style="color: #f44336; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.description.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.date.id_for_label }}">Date</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                        <div style="color: #f44336; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.date.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        Update Expense
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                <a href="{% url 'expense_list' %}" class="btn btn-secondary">Back to Expenses</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .col-6 {
+            flex: 0 0 100%;
+        }
+    }
+</style>
+{% endblock %}

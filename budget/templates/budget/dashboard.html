@@ -1,0 +1,366 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Dashboard - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 1rem; color: #333;">Welcome back, {{ profile.get_full_name|default:user.username }}! 👋</h1>
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Here's your financial overview for {{ current_month|date:"F Y"|default:"October 2024" }}</p>
+    </div>
+</div>
+
+{# DEBUG INFO: show only for superusers in DEBUG mode #}
+{% if show_debug_banner %}
+<div class="row">
+    <div class="col-12">
+        <div style="background:#fff8f0;border:1px solid #ffd8b5;padding:0.5rem 1rem;margin-bottom:1rem;border-radius:6px;color:#663300;">
+            <strong>Debug:</strong> Viewing as: <em>{{ user.username }}</em> | Budgets used: <em>{{ budget_month_used }}</em> | Budgets found: <em>{{ budget_vs_actual|length }}</em>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Financial Overview Cards -->
+<div class="row">
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💰</div>
+            <h3 style="margin-bottom: 0.5rem;">Total Income</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_income|floatformat:2|default:"5,200.00" }}</p>
+            <small style="opacity: 0.8;">Monthly Salary</small>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
+            <h3 style="margin-bottom: 0.5rem;">Total Expenses</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_expenses|floatformat:2|default:"3,450.00" }}</p>
+            <small style="opacity: 0.8;">This Month</small>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
+            <h3 style="margin-bottom: 0.5rem;">Investments</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_investments|floatformat:2|default:"1,200.00" }}</p>
+            <small style="opacity: 0.8;">Portfolio Value</small>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center" style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💎</div>
+            <h3 style="margin-bottom: 0.5rem;">Savings</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ currency_symbol }}{{ total_savings|floatformat:2|default:"550.00" }}</p>
+            <small style="opacity: 0.8;">Available Cash</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Expense Breakdown by Category</div>
+            <div class="chart-container">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Budget vs Actual Spending</div>
+            {% if budget_month_used and budget_month_used != current_month %}
+                <div style="padding:0.5rem 1rem; color:#666; font-size:0.9rem;">Showing budgets from {{ budget_month_used }}</div>
+            {% endif %}
+            <div class="chart-container">
+                <canvas id="budgetChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Spending Trend and Quick Actions -->
+<div class="row">
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header">Spending Trend (Last 6 Months)</div>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card">
+            <div class="card-header">Quick Actions</div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <a href="{% url 'add_expense' %}" class="btn btn-primary">Add Expense</a>
+                <a href="{% url 'add_investment' %}" class="btn btn-secondary">Add Investment</a>
+                <a href="{% url 'budget_management' %}" class="btn btn-warning">Set Budget</a>
+                <a href="{% url 'analytics' %}" class="btn" style="background-color: #9C27B0; color: white;">View Analytics</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Recent Expenses</div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_expenses and recent_expenses|length > 0 %}
+                            {% for expense in recent_expenses %}
+                                <tr>
+                                    <td>{{ expense.date|date:"M d" }}</td>
+                                    <td><span style="background: #fff3f0; color: #c62828; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">{{ expense.category }}</span></td>
+                                    <td>{{ expense.description }}</td>
+                                    <td style="color: #f44336; font-weight: bold;">{{ currency_symbol }}{{ expense.amount|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:#666; padding:2rem;">No recent expenses yet — add an expense to see it here.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center">
+                <a href="{% url 'expense_list' %}" class="btn btn-secondary">View All Expenses</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Recent Investments</div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_investments and recent_investments|length > 0 %}
+                            {% for inv in recent_investments %}
+                                <tr>
+                                    <td>{{ inv.date|date:"M d" }}</td>
+                                    <td><span style="background: #f0fff4; color: #2e7d32; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">{{ inv.investment_type }}</span></td>
+                                    <td>{{ inv.description }}</td>
+                                    <td style="color: #4CAF50; font-weight: bold;">{{ currency_symbol }}{{ inv.amount|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:#666; padding:2rem;">No recent investments yet — add an investment to see it here.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center">
+                <a href="{% url 'investment_list' %}" class="btn btn-secondary">View All Investments</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Month Reset Button -->
+<div class="row">
+    <div class="col-12">
+        <div class="card text-center" style="background: linear-gradient(135deg, #ff5722, #e64a19); color: white;">
+            <h3 style="margin-bottom: 1rem;">Ready to Start a New Month?</h3>
+            <p style="margin-bottom: 1.5rem; opacity: 0.9;">Generate a comprehensive report for {{ current_month }} and optionally reset the month.</p>
+            <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;">
+                <form id="downloadReportForm" method="post" action="{% url 'download_report' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="background-color: white; color: #ff5722; padding: 0.75rem 1.25rem; font-size: 1rem; font-weight: bold;">Download Monthly Report</button>
+                </form>
+
+                <button onclick="confirmResetMonth()" class="btn" style="background-color: #fff; color: #ff5722; padding: 0.75rem 1.25rem; font-size: 1rem; font-weight: bold; border:1px solid rgba(0,0,0,0.05);">Reset Month</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Hidden form to POST to reset_month (so destructive reset requires POST + CSRF) -->
+            <form id="resetMonthForm" method="post" action="{% url 'reset_month' %}" style="display:none;">
+                {% csrf_token %}
+            </form>
+
+<script>
+    // Graceful chart rendering: only draw charts when there's data; otherwise show a helpful message
+    const expenseCtxEl = document.getElementById('expenseChart');
+    const budgetCtxEl = document.getElementById('budgetChart');
+    const trendCtxEl = document.getElementById('trendChart');
+
+    // Use JSON-encoded context variables to ensure valid JS objects
+    let expenseData = {{ expense_breakdown_json|default:'[]'|safe }};
+    let budgetData = {{ budget_vs_actual_json|default:'[]'|safe }};
+    let trendData = {{ spending_trend_json|default:'[]'|safe }};
+    // Debug logs to help diagnose why client may show demo data
+    try {
+        console.log('DEBUG budgetData (client):', budgetData);
+        console.log('DEBUG expenseData (client):', expenseData);
+        console.log('DEBUG trendData (client):', trendData);
+    } catch (e) {
+        // ignore
+    }
+
+    // If there is no backend data, inject friendly demo data so charts display for new users.
+    function insertDemoBanner(cardSelector) {
+        try {
+            const card = cardSelector.closest('.card');
+            if (!card) return;
+            const existing = card.querySelector('.demo-banner');
+            if (existing) return;
+            const el = document.createElement('div');
+            el.className = 'demo-banner';
+            el.style.padding = '0.5rem 1rem';
+            el.style.background = '#fff8e1';
+            el.style.border = '1px solid #ffecb3';
+            el.style.color = '#8a6d3b';
+            el.style.borderRadius = '6px';
+            el.style.margin = '0.5rem 0 1rem 0';
+            el.textContent = 'Showing demo data — add real transactions to replace these charts.';
+            card.insertBefore(el, card.querySelector('.chart-container'));
+        } catch (e) {
+            // silent
+        }
+    }
+
+    function showEmptyMessage(el, message) {
+        const container = el.parentNode;
+    container.innerHTML = '<div style="padding:2rem; text-align:center; color:#666;">' + message + '</div>';
+    }
+
+    // Expense breakdown (use demo data if empty)
+    if (!expenseData || expenseData.length === 0) {
+        expenseData = [
+            { category: 'Food', total: 850.25 },
+            { category: 'Transport', total: 220.40 },
+            { category: 'Shopping', total: 420.00 },
+            { category: 'Bills', total: 390.75 },
+            { category: 'Entertainment', total: 150.00 }
+        ];
+        insertDemoBanner(document.getElementById('expenseChart'));
+    }
+    if (expenseData && expenseData.length > 0) {
+        const expenseCtx = expenseCtxEl.getContext('2d');
+        new Chart(expenseCtx, {
+            type: 'pie',
+            data: {
+                labels: expenseData.map(item => item.category),
+                datasets: [{
+                    data: expenseData.map(item => parseFloat(item.total)),
+                    backgroundColor: [
+                        '#4CAF50', '#2196F3', '#ff9800', '#f44336', 
+                        '#9C27B0', '#00BCD4', '#795548', '#607D8B'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    } else {
+        showEmptyMessage(expenseCtxEl, 'No expenses recorded for this month yet. Add an expense to populate the breakdown.');
+    }
+
+    // Budget vs Actual (demo fallback)
+    if (!budgetData || budgetData.length === 0) {
+        budgetData = [
+            { category: 'Food', allocated: 800, actual: 650, remaining: 150 },
+            { category: 'Transport', allocated: 300, actual: 220, remaining: 80 },
+            { category: 'Shopping', allocated: 500, actual: 420, remaining: 80 },
+            { category: 'Bills', allocated: 400, actual: 390, remaining: 10 },
+            { category: 'Entertainment', allocated: 200, actual: 150, remaining: 50 }
+        ];
+        insertDemoBanner(document.getElementById('budgetChart'));
+    }
+    if (budgetData && budgetData.length > 0) {
+        const budgetCtx = budgetCtxEl.getContext('2d');
+        new Chart(budgetCtx, {
+            type: 'bar',
+            data: {
+                labels: budgetData.map(item => item.category),
+                datasets: [{ label: 'Allocated', data: budgetData.map(item => item.allocated), backgroundColor: '#4CAF50' },
+                           { label: 'Actual', data: budgetData.map(item => item.actual), backgroundColor: '#f44336' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    } else {
+        showEmptyMessage(budgetCtxEl, 'No budgets set for this month. Go to Budget Management to add monthly budgets.');
+    }
+
+    // Spending trend (last 6 months) — demo fallback uses recent month labels
+    if (!trendData || trendData.length === 0) {
+        const now = new Date();
+        const demoTrend = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toISOString().slice(0,7); // YYYY-MM
+            demoTrend.push({ month: label, amount: Math.round(200 + Math.random()*900) });
+        }
+        trendData = demoTrend;
+        insertDemoBanner(document.getElementById('trendChart'));
+    }
+    if (trendData && trendData.length > 0) {
+        const trendCtx = trendCtxEl.getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendData.map(item => item.month),
+                datasets: [{ label: 'Monthly Spending', data: trendData.map(item => item.amount), borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.1)', tension: 0.4, fill: true }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    } else {
+        showEmptyMessage(trendCtxEl, 'No historical spending data available yet. Add expenses over several months to see trends.');
+    }
+
+    function confirmResetMonth() {
+        if (confirm('Are you sure you want to generate the monthly report and reset for a new month? This action cannot be undone.')) {
+            const form = document.getElementById('resetMonthForm');
+            if (form) {
+                form.submit();
+            } else {
+                // fallback to GET if form not found
+                window.location.href = "{% url 'reset_month' %}";
+            }
+        }
+    }
+</script>
+
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    @media (max-width: 768px) {
+        .col-3, .col-4, .col-6, .col-8 {
+            flex: 0 0 100%;
+        }
+        
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}

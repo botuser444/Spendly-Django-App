@@ -1,0 +1,106 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Spendly - Your Personal Budget Planner{% endblock %}
+
+{% block content %}
+<div class="hero-section" style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 4rem 0; text-align: center; margin: -2rem -1rem 3rem -1rem;">
+    <div class="container">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem; font-weight: bold;">Welcome to Spendly</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">Your comprehensive budget planning and expense tracking solution</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'login' %}" class="btn" style="background-color: white; color: #4CAF50; padding: 1rem 2rem; font-size: 1.1rem; font-weight: bold;">Login</a>
+            <a href="{% url 'register' %}" class="btn" style="background-color: transparent; color: white; border: 2px solid white; padding: 1rem 2rem; font-size: 1.1rem; font-weight: bold;">Sign Up</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2 style="text-align: center; margin-bottom: 3rem; color: #333;">Why Choose Spendly?</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Expense Tracking</h3>
+                <p>Track your daily expenses across multiple categories with detailed descriptions and date tracking.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Budget Management</h3>
+                <p>Set monthly budgets for different categories and monitor your spending against allocated amounts.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Investment Tracking</h3>
+                <p>Monitor your investments across different types including stocks, mutual funds, and real estate.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Monthly Reports</h3>
+                <p>Generate comprehensive PDF reports with detailed financial analysis and insights.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📱</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Mobile Friendly</h3>
+                <p>Access your financial data anywhere with our responsive design that works on all devices.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                <h3 style="margin-bottom: 1rem; color: #4CAF50;">Secure & Private</h3>
+                <p>Your financial data is secure with user authentication and data protection measures.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card text-center" style="background: linear-gradient(135deg, #f5f5f5, #e8e8e8);">
+                <h2 style="margin-bottom: 1rem; color: #333;">Ready to Take Control of Your Finances?</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 2rem; color: #666;">Join thousands of users who are already managing their budgets effectively with Spendly.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Get Started Free</a>
+                    <a href="{% url 'login' %}" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">Already Have Account?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section h1 {
+            font-size: 2rem !important;
+        }
+        
+        .hero-section p {
+            font-size: 1rem !important;
+        }
+        
+        .hero-section .btn {
+            padding: 0.75rem 1.5rem !important;
+            font-size: 1rem !important;
+        }
+    }
+</style>
+{% endblock %}

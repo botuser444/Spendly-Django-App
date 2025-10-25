@@ -1,0 +1,46 @@
+Spendly Monthly Report - 2025-10
+User: admin
+Email: admin@spendly.com
+Monthly Salary: ₨80,000.00
+Total Expenses: ₨61,700.00
+Total Investments: ₨9,000.00
+Total Savings: ₨9,300.00
+Report Generated: 2025-10-25 19:46:22
+
+--- DEBUG TRACEBACK ---
+Traceback (most recent call last):
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 47, in _getPMBackend
+    import rlPyCairo as M
+ModuleNotFoundError: No module named 'rlPyCairo'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 50, in _getPMBackend
+    import _rl_renderPM as M
+ModuleNotFoundError: No module named '_rl_renderPM'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\botus\OneDrive\Desktop\Spendly\budget\views.py", line 639, in download_report
+    png_bytes = RL_renderPM.drawToString(drawing, fmt='PNG')
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 748, in drawToString
+    drawToFile(d,s,fmt=fmt, dpi=dpi, bg=bg, configPIL=configPIL,backend=backend,backendFmt=backendFmt, **kwds)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 743, in drawToFile
+    c = drawToPMCanvas(d, dpi=dpi, bg=bg, configPIL=configPIL, showBoundary=showBoundary,backend=backend,backendFmt=backendFmt, **kwds)
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 728, in drawToPMCanvas
+    c = PMCanvas(d.width, d.height, dpi=dpi, bg=bg, configPIL=configPIL, backend=backend,backendFmt=backendFmt)
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 317, in __init__
+    self.__dict__['_gs'] = self._getGState(w,h,bg,backend,fmt=backendFmt)
+                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 331, in _getGState
+    mod = _getPMBackend(backend)
+  File "C:\Users\botus\AppData\Local\Programs\Python\Python313\Lib\site-packages\reportlab\graphics\renderPM.py", line 52, in _getPMBackend
+                    raise RenderPMError(f"""cannot import desired renderPM backend {backend}
+    Seek advice at the users list see
+    https://pairlist2.pair.net/mailman/listinfo/reportlab-users""")
+reportlab.graphics.utils.RenderPMError: cannot import desired renderPM backend rlPyCairo
+Seek advice at the users list see
+https://pairlist2.pair.net/mailman/listinfo/reportlab-users

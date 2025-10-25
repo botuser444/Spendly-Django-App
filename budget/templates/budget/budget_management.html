@@ -1,0 +1,147 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Budget Management - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 1rem; color: #333;">Budget Management - {{ current_month|default:"October 2024" }}</h1>
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Set and monitor your monthly budget allocations</p>
+    </div>
+</div>
+
+<!-- Budget vs Actual Overview -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Budget vs Actual Spending</div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Allocated Budget</th>
+                            <th>Actual Spent</th>
+                            <th>Remaining</th>
+                            <th>% Used</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if budget_vs_actual and budget_vs_actual|length > 0 %}
+                            {% for item in budget_vs_actual %}
+                                <tr>
+                                    <td style="font-weight: bold;">{{ item.category }}</td>
+                                    <td style="color: #4CAF50; font-weight: bold;">{{ currency_symbol }}{{ item.allocated|floatformat:2 }}</td>
+                                    <td style="color: #f44336; font-weight: bold;">{{ currency_symbol }}{{ item.actual|floatformat:2 }}</td>
+                                    <td style="{% if item.remaining < 0 %}color: #f44336;{% else %}color: #4CAF50;{% endif %} font-weight: bold;">{% if item.remaining < 0 %}-{{ currency_symbol }}{{ item.remaining_abs|floatformat:2 }}{% else %}{{ currency_symbol }}{{ item.remaining|floatformat:2 }}{% endif %}</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="flex: 1; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden;">
+                                                <div style="height: 100%; width: {{ item.percent_used|floatformat:0 }}%; background-color: {% if item.percent_used >= 100 %}#f44336{% elif item.percent_used >= 80 %}#ff9800{% else %}#4CAF50{% endif %}; transition: width 0.3s;"></div>
+                                            </div>
+                                            <span style="font-weight: bold; color: {% if item.percent_used >= 100 %}#f44336{% elif item.percent_used >= 80 %}#ff9800{% else %}#4CAF50{% endif %};">{{ item.percent_used|floatformat:0 }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:#666; padding:2rem;">No budgets set for this month yet — set budgets below to see them here.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Set Budget Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Set Monthly Budgets</div>
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    {% for item in categories_with_values %}
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label" for="budget_{{ item.category }}">{{ item.category }} Budget</label>
+                            <input type="number" 
+                                   name="budget_{{ item.category }}" 
+                                   id="budget_{{ item.category }}"
+                                   class="form-control"
+                                   value="{{ item.amount }}"
+                                   step="0.01" 
+                                   min="0"
+                                   placeholder="Enter budget for {{ item.category }}">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                        Save All Budgets
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Budget Tips -->
+<div class="row">
+    <div class="col-12">
+        <div class="card" style="background: linear-gradient(135deg, #e8f5e8, #f1f8e9);">
+            <div class="card-header" style="color: #2e7d32;">💡 Budget Tips</div>
+            <div style="padding: 1rem;">
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem;">Allocate 50% of your income to needs (bills, food, transport)</li>
+                    <li style="margin-bottom: 0.5rem;">Set aside 20% for savings and investments</li>
+                    <li style="margin-bottom: 0.5rem;">Use 30% for wants (entertainment, shopping)</li>
+                    <li style="margin-bottom: 0.5rem;">Review and adjust your budgets monthly</li>
+                    <li style="margin-bottom: 0.5rem;">Track your spending regularly to stay on budget</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+        .col-6 {
+            flex: 0 0 100%;
+        }
+        
+        .table {
+            font-size: 0.875rem;
+        }
+        
+        .table td, .table th {
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}

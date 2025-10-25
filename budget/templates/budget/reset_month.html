@@ -1,0 +1,67 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Reset Month - Spendly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 style="margin-bottom: 2rem; color: #333;">Generate Monthly Report & Reset</h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div class="card" style="border: 2px solid #ff5722;">
+            <div class="card-header" style="background-color: #ff5722; color: white;">
+                📊 Monthly Report Generation
+            </div>
+            
+            <div style="padding: 1.5rem;">
+                <h3 style="margin-bottom: 1rem; color: #333;">Ready to generate your monthly report?</h3>
+                
+                <div style="background-color: #fff3e0; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; border-left: 4px solid #ff5722;">
+                    <h4 style="margin-bottom: 0.5rem; color: #e65100;">What happens when you generate the report:</h4>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li style="margin-bottom: 0.5rem;">A comprehensive PDF report will be created with all your financial data</li>
+                        <li style="margin-bottom: 0.5rem;">The report will include income, expenses, investments, and savings analysis</li>
+                        <li style="margin-bottom: 0.5rem;">Category-wise breakdowns and spending trends will be included</li>
+                        <li style="margin-bottom: 0.5rem;">The report will be saved to your account for future reference</li>
+                        <li style="margin-bottom: 0.5rem;">You can download the PDF report immediately</li>
+                    </ul>
+                </div>
+                
+                <div style="background-color: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; border-left: 4px solid #4CAF50;">
+                    <h4 style="margin-bottom: 0.5rem; color: #2e7d32;">Important Notes:</h4>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li style="margin-bottom: 0.5rem;">Your data will NOT be deleted - it will remain accessible</li>
+                        <li style="margin-bottom: 0.5rem;">You can continue adding new expenses and investments</li>
+                        <li style="margin-bottom: 0.5rem;">The report is generated for the current month's data</li>
+                        <li style="margin-bottom: 0.5rem;">You can generate reports multiple times if needed</li>
+                    </ul>
+                </div>
+                
+                <form method="post" style="text-align: center;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="background-color: #ff5722; color: white; padding: 1rem 2rem; font-size: 1.2rem; font-weight: bold;">
+                        Generate Monthly Report
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .col-8 {
+            flex: 0 0 100%;
+        }
+    }
+</style>
+{% endblock %}
