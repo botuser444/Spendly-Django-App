@@ -30,6 +30,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            overflow: visible; /* allow larger logo to overflow without changing header height */
         }
 
         .header-container {
@@ -59,7 +60,16 @@
             width: auto;
             display: inline-block;
             object-fit: contain;
-            /* no transform: keep image rendering predictable across devices */
+            will-change: transform;
+        }
+
+        /* Desktop: visually scale the logo up without increasing header height */
+        @media (min-width: 769px) {
+            .logo img {
+                transform: scale(2); /* double visual size on desktop */
+                transform-origin: left center;
+                z-index: 1100; /* keep logo above other header elements */
+            }
         }
 
         .logo:hover {
@@ -513,10 +523,13 @@
             .chart-container {
                 height: 220px;
             }
-            /* Ensure the logo is visible and appropriately sized on mobile */
+            /* Ensure the logo is visible and appropriately sized on mobile
+               We'll visually double it using transform so header height stays the same */
             .logo img {
                 height: 48px;
-                transform: none !important;
+                transform: scale(2);
+                transform-origin: left center;
+                z-index: 1100;
                 display: inline-block;
             }
         }
